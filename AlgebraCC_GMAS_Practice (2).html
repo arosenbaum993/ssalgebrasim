@@ -1,0 +1,1549 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Algebra: Concepts &amp; Connections — GMAS Practice</title>
+
+<!--
+  ============================================================
+  STAGE 2: Student-facing practice simulation
+  Algebra: Concepts & Connections (GMAS EOC practice)
+  ============================================================
+  CONFIG: paste your deployed /exec Web App URL below.
+  Also set the achievement-level thresholds if you want to
+  change them (they are practice estimates, not official
+  GMAS scale-score cut points).
+-->
+<script>
+  // ----- CONFIG -------------------------------------------------
+  const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxGez2lpmHLgK7IQ8os2lOcP-OjSy7bANq4B5qj19YjpwZbdInsXmCMjI85IWe80ZnFoA/exec";
+
+  // Practice thresholds (percent). Adjust freely. Proficient = retake bar.
+  const ACHIEVEMENT_THRESHOLDS = [
+    { min: 85, level: "Distinguished Learner" },
+    { min: 65, level: "Proficient Learner" },
+    { min: 40, level: "Developing Learner" },
+    { min: 0,  level: "Beginning Learner" }
+  ];
+
+  // Official GaDOE policy descriptors (Algebra C&C ALD, July 2024).
+  // These describe the levels. The numeric cuts above are PRACTICE
+  // ESTIMATES, because the ALD defines levels by scale score, not by
+  // percent. If your test coordinator provides the raw-score-to-level
+  // lookup for this form, replace the thresholds above with those cuts.
+  const ACHIEVEMENT_DESCRIPTORS = {
+    "Beginning Learner": "Does not yet demonstrate proficiency in the course standards. Needs substantial academic support to be prepared for the next course.",
+    "Developing Learner": "Demonstrates partial proficiency in the course standards. Needs additional academic support to be on track.",
+    "Proficient Learner": "Demonstrates proficiency in the course standards. Prepared for the next course and on track for post-secondary readiness.",
+    "Distinguished Learner": "Demonstrates advanced proficiency in the course standards. Well prepared for the next course."
+  };
+
+  // Proficient-level ALD skill targets per standard (Algebra C&C ALD,
+  // July 2024). Shown on the results screen for standards where the
+  // student missed items. Proficient is the retake bar, so these are
+  // the "be able to do" targets to study toward.
+  const ALD_TARGETS = {
+    "A.FGR.2": [
+      "Solve real-life problems involving arithmetic sequences, graphically and algebraically.",
+      "Interpret the key features, domain, range, and function notation of a linear function in context.",
+      "Compare a non-linear function to its parent function."
+    ],
+    "A.GSR.3": [
+      "Apply the distance and midpoint formulas to solve coordinate-plane problems in a geometric context.",
+      "Find slope, distance, and midpoint within shapes on the coordinate plane.",
+      "Determine area and perimeter of parallelograms and triangles on the coordinate plane."
+    ],
+    "A.PAR.4": [
+      "Create linear inequalities in two variables to represent real-life situations.",
+      "Create a graph to solve a system of linear inequalities.",
+      "Identify the solution set of an inequality based on context."
+    ],
+    "A.NR.5": [
+      "Explain why the sum or product of two numbers is rational or irrational.",
+      "Rewrite numeric and algebraic expressions involving radicals."
+    ],
+    "A.PAR.6": [
+      "Interpret parts of a quadratic expression in a real-life situation.",
+      "Convert between standard, vertex, and factored forms to explain key features.",
+      "Create and solve a quadratic equation by factoring (a not equal to 1), completing the square, or the quadratic formula."
+    ],
+    "A.FGR.7": [
+      "Create a quadratic function that models a real-life situation, and graph it with key features.",
+      "Rewrite a quadratic in vertex form to reveal the maximum or minimum and describe it in context.",
+      "Interpret domain, range, and average rate of change of a quadratic function in context."
+    ],
+    "A.PAR.8": [
+      "Interpret parts of an exponential expression in a real-life situation.",
+      "Create an exponential equation or function from a description, table, or graph.",
+      "Solve real-life problems involving exponential equations and describe the solution in context."
+    ],
+    "A.FGR.9": [
+      "Create an exponential function that models a real-life situation and identify key features from its graph.",
+      "Explain the effect of replacing f(x) with f(x) + k or k times f(x).",
+      "Identify and use a rule for a geometric sequence."
+    ],
+    "A.DSR.10": [
+      "Compare measures of center and variability between data sets and identify outliers.",
+      "Create a scatter plot, describe the relationship, and fit a line of best fit to make predictions.",
+      "Distinguish correlation from causation."
+    ]
+  };
+
+  // Desmos demo API key. For long-term use, request your own free
+  // key at desmos.com/api and swap it in here.
+  const DESMOS_API_KEY = "dcb31709b452b1cf9dc26972add0fda6";
+  // --------------------------------------------------------------
+</script>
+
+<style>
+  :root {
+    --bg: #eef1f5;
+    --surface: #ffffff;
+    --ink: #1a2233;
+    --ink-soft: #4a5568;
+    --navy: #1f3864;
+    --navy-2: #2c5282;
+    --line: #d4dae3;
+    --line-soft: #e7ebf1;
+    --good: #2f7a4e;
+    --good-bg: #e7f4ec;
+    --bad: #b23b3b;
+    --bad-bg: #fbecec;
+    --flag: #b7791f;
+    --flag-bg: #fdf3e0;
+    --focus: #2c5282;
+    --radius: 10px;
+    --shadow: 0 1px 2px rgba(26,34,51,.06), 0 4px 16px rgba(26,34,51,.06);
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    --mono: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body { margin: 0; padding: 0; }
+
+  body {
+    font-family: var(--sans);
+    color: var(--ink);
+    background: var(--bg);
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  button { font-family: inherit; cursor: pointer; }
+
+  :focus-visible {
+    outline: 3px solid var(--focus);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+
+  /* ---------- App header bar ---------- */
+  .appbar {
+    background: var(--navy);
+    color: #fff;
+    padding: 10px 18px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+  .appbar .title {
+    font-weight: 700;
+    font-size: 15px;
+    letter-spacing: .2px;
+  }
+  .appbar .title small {
+    display: block;
+    font-weight: 400;
+    font-size: 12px;
+    opacity: .8;
+    letter-spacing: 0;
+  }
+  .appbar .tools { display: flex; gap: 8px; flex-wrap: wrap; }
+  .tool-btn {
+    background: rgba(255,255,255,.12);
+    color: #fff;
+    border: 1px solid rgba(255,255,255,.28);
+    padding: 7px 12px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+  }
+  .tool-btn:hover { background: rgba(255,255,255,.22); }
+  .tool-btn[aria-pressed="true"] {
+    background: #fff;
+    color: var(--navy);
+  }
+
+  /* ---------- Layout ---------- */
+  .wrap { max-width: 1120px; margin: 0 auto; padding: 18px; }
+  .screen { display: none; }
+  .screen.active { display: block; }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+  }
+
+  /* ---------- Welcome ---------- */
+  .welcome { max-width: 640px; margin: 40px auto; padding: 32px; }
+  .welcome h1 { margin: 0 0 4px; font-size: 24px; color: var(--navy); }
+  .welcome .sub { color: var(--ink-soft); margin: 0 0 22px; font-size: 15px; }
+  .welcome ul { color: var(--ink-soft); font-size: 14px; padding-left: 20px; }
+  .welcome li { margin: 6px 0; }
+  .field { margin: 20px 0; }
+  .field label { display: block; font-weight: 600; margin-bottom: 6px; font-size: 14px; }
+  .field input {
+    width: 100%;
+    padding: 11px 12px;
+    font-size: 16px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+  }
+  .primary {
+    background: var(--navy);
+    color: #fff;
+    border: none;
+    padding: 13px 20px;
+    border-radius: 9px;
+    font-size: 15px;
+    font-weight: 700;
+    width: 100%;
+  }
+  .primary:hover { background: #16294a; }
+  .primary:disabled { background: #9aa6bb; cursor: not-allowed; }
+  .err-msg { color: var(--bad); font-size: 13px; margin-top: 8px; min-height: 18px; }
+
+  /* ---------- Test layout ---------- */
+  .test-grid {
+    display: grid;
+    grid-template-columns: 1fr 240px;
+    gap: 18px;
+    align-items: start;
+  }
+  .progress {
+    font-size: 13px;
+    color: var(--ink-soft);
+    margin-bottom: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .progress .bar {
+    height: 6px;
+    background: var(--line-soft);
+    border-radius: 99px;
+    overflow: hidden;
+    flex: 1;
+    margin-left: 14px;
+  }
+  .progress .bar i {
+    display: block; height: 100%;
+    background: var(--navy-2);
+    width: 0%;
+    transition: width .25s ease;
+  }
+
+  .item { padding: 24px; }
+  .item .eyebrow {
+    display: flex; gap: 8px; flex-wrap: wrap; align-items: center;
+    font-size: 12px; color: var(--ink-soft); margin-bottom: 12px;
+  }
+  .chip {
+    background: var(--line-soft);
+    border-radius: 99px;
+    padding: 3px 10px;
+    font-weight: 600;
+    letter-spacing: .2px;
+  }
+  .item .stem { font-size: 17px; margin: 0 0 6px; }
+  .item .instruction { font-size: 13px; color: var(--ink-soft); margin: 0 0 16px; font-style: italic; }
+
+  .options { display: flex; flex-direction: column; gap: 10px; }
+  .opt {
+    display: flex; align-items: flex-start; gap: 12px;
+    border: 1px solid var(--line);
+    border-radius: 9px;
+    padding: 13px 14px;
+    background: #fff;
+    transition: border-color .12s, background .12s;
+  }
+  .opt:hover { border-color: var(--navy-2); background: #f7f9fc; }
+  .opt.selected { border-color: var(--navy); background: #eef3fb; box-shadow: inset 0 0 0 1px var(--navy); }
+  .opt input { margin-top: 3px; width: 18px; height: 18px; accent-color: var(--navy); flex: 0 0 auto; }
+  .opt .opt-text { font-size: 15px; }
+
+  /* ---------- Drag & drop ---------- */
+  .dnd-tokens {
+    display: flex; flex-wrap: wrap; gap: 10px;
+    padding: 14px; border: 1px dashed var(--line);
+    border-radius: 9px; margin-bottom: 16px; background: #fafbfd;
+    min-height: 56px;
+  }
+  .dnd-tokens .dnd-tokens-label { width: 100%; font-size: 12px; color: var(--ink-soft); }
+  .token {
+    background: #fff; border: 1px solid var(--navy-2);
+    color: var(--navy); border-radius: 8px;
+    padding: 9px 12px; font-size: 14px; font-family: var(--mono);
+    font-weight: 600; user-select: none;
+  }
+  .token:hover { background: #eef3fb; }
+  .token.picked { background: var(--navy); color: #fff; }
+  .dnd-buckets { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .bucket {
+    border: 1px solid var(--line); border-radius: 9px;
+    padding: 12px; min-height: 110px; background: #fff;
+  }
+  .bucket.over { border-color: var(--navy); background: #eef3fb; }
+  .bucket h4 { margin: 0 0 8px; font-size: 13px; color: var(--navy); }
+  .bucket .drop-zone { display: flex; flex-direction: column; gap: 8px; min-height: 40px; }
+
+  /* ---------- Item footer nav ---------- */
+  .item-nav {
+    display: flex; justify-content: space-between; gap: 10px;
+    padding: 16px 24px; border-top: 1px solid var(--line-soft);
+    flex-wrap: wrap;
+  }
+  .nav-btn {
+    background: #fff; color: var(--navy);
+    border: 1px solid var(--line); border-radius: 8px;
+    padding: 10px 16px; font-size: 14px; font-weight: 600;
+  }
+  .nav-btn:hover { background: #f3f6fb; border-color: var(--navy-2); }
+  .nav-btn:disabled { opacity: .45; cursor: not-allowed; }
+  .flag-btn[aria-pressed="true"] { background: var(--flag-bg); border-color: var(--flag); color: var(--flag); }
+
+  /* ---------- Sidebar (navigator) ---------- */
+  .side .card { padding: 16px; position: sticky; top: 18px; }
+  .side h3 { margin: 0 0 10px; font-size: 13px; color: var(--ink-soft); text-transform: uppercase; letter-spacing: .6px; }
+  .navigator { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; }
+  .nav-cell {
+    aspect-ratio: 1; border: 1px solid var(--line);
+    border-radius: 7px; background: #fff; font-size: 13px;
+    font-weight: 600; color: var(--ink-soft);
+    display: flex; align-items: center; justify-content: center;
+    position: relative;
+  }
+  .nav-cell:hover { border-color: var(--navy-2); }
+  .nav-cell.answered { background: var(--navy); color: #fff; border-color: var(--navy); }
+  .nav-cell.current { box-shadow: 0 0 0 2px var(--navy-2); }
+  .nav-cell.flagged::after {
+    content: ""; position: absolute; top: 3px; right: 3px;
+    width: 7px; height: 7px; border-radius: 50%; background: var(--flag);
+  }
+  .legend { font-size: 11px; color: var(--ink-soft); margin-top: 12px; display: flex; flex-direction: column; gap: 5px; }
+  .legend span { display: inline-flex; align-items: center; gap: 6px; }
+  .swatch { width: 12px; height: 12px; border-radius: 3px; border: 1px solid var(--line); display: inline-block; }
+  .submit-all {
+    margin-top: 14px; width: 100%;
+    background: var(--good); color: #fff; border: none;
+    padding: 11px; border-radius: 9px; font-weight: 700; font-size: 14px;
+  }
+  .submit-all:hover { background: #25613e; }
+
+  /* ---------- Panels (calculator / formula) ---------- */
+  .panel {
+    position: fixed; right: 18px; bottom: 18px;
+    width: min(420px, calc(100vw - 36px));
+    background: #fff; border: 1px solid var(--line);
+    border-radius: 12px; box-shadow: 0 8px 30px rgba(26,34,51,.22);
+    z-index: 50; display: none;
+  }
+  .panel.open { display: block; }
+  .panel-head {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 10px 14px; background: var(--navy); color: #fff;
+    border-radius: 12px 12px 0 0;
+  }
+  .panel-head strong { font-size: 14px; }
+  .panel-head button { background: transparent; border: none; color: #fff; font-size: 20px; line-height: 1; }
+  .panel-body { padding: 14px; max-height: 56vh; overflow: auto; }
+  #desmos-calc { width: 100%; height: 360px; }
+  .calc-note { font-size: 12px; color: var(--ink-soft); padding: 10px 14px 0; }
+
+  .formula-sheet h4 { margin: 14px 0 4px; color: var(--navy); font-size: 13px; }
+  .formula-sheet h4:first-child { margin-top: 0; }
+  .formula-sheet p { margin: 2px 0; font-family: var(--mono); font-size: 13px; }
+  .formula-sheet .d { color: var(--ink-soft); font-family: var(--sans); font-style: italic; font-size: 12px; }
+
+  /* ---------- Confirm dialog ---------- */
+  .overlay {
+    position: fixed; inset: 0; background: rgba(20,28,45,.5);
+    display: none; align-items: center; justify-content: center; z-index: 80; padding: 18px;
+  }
+  .overlay.open { display: flex; }
+  .dialog { background: #fff; border-radius: 12px; max-width: 460px; padding: 24px; box-shadow: var(--shadow); }
+  .dialog h3 { margin: 0 0 8px; color: var(--navy); }
+  .dialog p { color: var(--ink-soft); font-size: 14px; }
+  .dialog .row { display: flex; gap: 10px; margin-top: 18px; }
+  .dialog .row button { flex: 1; }
+  .ghost { background: #fff; border: 1px solid var(--line); border-radius: 9px; padding: 11px; font-weight: 600; color: var(--ink); }
+
+  /* ---------- Results ---------- */
+  .results { padding: 28px; }
+  .results h1 { margin: 0 0 2px; color: var(--navy); font-size: 22px; }
+  .results .who { color: var(--ink-soft); margin: 0 0 20px; }
+  .score-row { display: flex; gap: 14px; flex-wrap: wrap; margin-bottom: 22px; }
+  .stat {
+    flex: 1; min-width: 150px; border: 1px solid var(--line);
+    border-radius: 10px; padding: 16px;
+  }
+  .stat .k { font-size: 12px; color: var(--ink-soft); text-transform: uppercase; letter-spacing: .5px; }
+  .stat .v { font-size: 28px; font-weight: 800; color: var(--navy); }
+  .level-tag {
+    display: inline-block; padding: 4px 12px; border-radius: 99px;
+    font-weight: 700; font-size: 14px;
+  }
+  .level-Distinguished { background: #e7f4ec; color: #1f6b41; }
+  .level-Proficient { background: #e6f0fb; color: #1f4a82; }
+  .level-Developing { background: #fdf3e0; color: #8a5a12; }
+  .level-Beginning { background: #fbecec; color: #8e2f2f; }
+
+  .submit-status { font-size: 13px; padding: 10px 14px; border-radius: 8px; margin-bottom: 20px; }
+  .submit-status.ok { background: var(--good-bg); color: var(--good); }
+  .submit-status.fail { background: var(--bad-bg); color: var(--bad); }
+  .submit-status.pending { background: var(--line-soft); color: var(--ink-soft); }
+
+  .domain-bars { margin: 8px 0 26px; }
+  .dbar { margin: 9px 0; }
+  .dbar .dlab { display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 3px; }
+  .dbar .dlab b { color: var(--navy); }
+  .dbar .track { height: 10px; background: var(--line-soft); border-radius: 99px; overflow: hidden; }
+  .dbar .track i { display: block; height: 100%; background: var(--navy-2); border-radius: 99px; }
+
+  .review h2 { font-size: 16px; color: var(--navy); margin: 26px 0 4px; }
+  .review .lead { font-size: 13px; color: var(--ink-soft); margin: 0 0 14px; }
+  .review-item { border: 1px solid var(--line); border-left: 4px solid var(--bad); border-radius: 9px; padding: 16px; margin: 12px 0; }
+  .review-item .ri-head { font-size: 12px; color: var(--ink-soft); margin-bottom: 6px; display: flex; gap: 8px; flex-wrap: wrap; }
+  .review-item .ri-stem { font-size: 15px; margin: 0 0 10px; font-weight: 600; }
+  .review-item .ri-expl { font-size: 14px; background: #f7f9fc; border-radius: 8px; padding: 12px; color: var(--ink); }
+  .review-item .ri-vocab { font-size: 12px; color: var(--flag); margin-top: 8px; }
+  .all-correct { background: var(--good-bg); color: var(--good); padding: 16px; border-radius: 9px; font-weight: 600; }
+
+  .vocab-flags { margin: 8px 0 0; }
+  .vocab-flags span {
+    display: inline-block; background: var(--flag-bg); color: var(--flag);
+    border-radius: 99px; padding: 4px 11px; font-size: 13px; margin: 4px 6px 0 0; font-weight: 600;
+  }
+
+  .results-actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 24px; }
+
+  .level-desc { font-size: 14px; color: var(--ink); margin: 6px 0 2px; }
+  .cut-note { font-size: 12px; color: var(--ink-soft); font-style: italic; margin: 0; }
+  .targets { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 8px 0 6px; }
+  .target-block { border: 1px solid var(--line); border-radius: 9px; padding: 12px 14px; background: #fafbfd; }
+  .target-block h4 { margin: 0 0 6px; font-size: 13px; color: var(--navy); }
+  .target-block ul { margin: 0; padding-left: 18px; }
+  .target-block li { font-size: 13px; color: var(--ink); margin: 4px 0; }
+  @media (max-width: 700px) { .targets { grid-template-columns: 1fr; } }
+
+  /* ---------- Responsive ---------- */
+  @media (max-width: 860px) {
+    .test-grid { grid-template-columns: 1fr; }
+    .side .card { position: static; }
+    .navigator { grid-template-columns: repeat(8, 1fr); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    * { transition: none !important; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ===================== WELCOME ===================== -->
+<section id="screen-welcome" class="screen active">
+  <div class="wrap">
+    <div class="card welcome">
+      <h1>Algebra: Concepts &amp; Connections</h1>
+      <p class="sub">Georgia Milestones EOC — Practice Simulation</p>
+
+      <p style="font-size:14px;color:var(--ink-soft);margin:0 0 6px;">Before you start:</p>
+      <ul>
+        <li>This practice test mirrors the Georgia Milestones format. You can move between questions and flag any to revisit.</li>
+        <li>A Desmos calculator and the state formula sheet are available from the buttons at the top.</li>
+        <li>You will <strong>not</strong> see whether each answer is right or wrong while testing.</li>
+        <li>After you submit, you will get worked explanations for any questions you missed, so you can study before your retake.</li>
+      </ul>
+
+      <div class="field">
+        <label for="student-name">Enter your full name to begin</label>
+        <input id="student-name" type="text" autocomplete="off" placeholder="First and last name" />
+        <div class="err-msg" id="name-err"></div>
+      </div>
+
+      <button class="primary" id="start-btn">Start practice test</button>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== TEST ===================== -->
+<section id="screen-test" class="screen">
+  <div class="appbar">
+    <div class="title">
+      Algebra: Concepts &amp; Connections
+      <small id="appbar-student"></small>
+    </div>
+    <div class="tools">
+      <button class="tool-btn" id="btn-calc" aria-pressed="false">Calculator</button>
+      <button class="tool-btn" id="btn-formula" aria-pressed="false">Formula sheet</button>
+    </div>
+  </div>
+
+  <div class="wrap">
+    <div class="test-grid">
+      <main>
+        <div class="progress">
+          <span id="progress-label">Question 1 of 28</span>
+          <span class="bar"><i id="progress-fill"></i></span>
+        </div>
+
+        <div class="card">
+          <div class="item" id="item-body"><!-- rendered --></div>
+          <div class="item-nav">
+            <button class="nav-btn" id="prev-btn">Previous</button>
+            <button class="nav-btn flag-btn" id="flag-btn" aria-pressed="false">Flag for review</button>
+            <button class="nav-btn" id="next-btn">Next</button>
+          </div>
+        </div>
+      </main>
+
+      <aside class="side">
+        <div class="card">
+          <h3>Question navigator</h3>
+          <div class="navigator" id="navigator"></div>
+          <div class="legend">
+            <span><i class="swatch" style="background:var(--navy);border-color:var(--navy);"></i> Answered</span>
+            <span><i class="swatch"></i> Not answered</span>
+            <span><i class="swatch" style="background:var(--flag);border-color:var(--flag);"></i> Flagged</span>
+          </div>
+          <button class="submit-all" id="submit-open">Review &amp; submit</button>
+        </div>
+      </aside>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== RESULTS ===================== -->
+<section id="screen-results" class="screen">
+  <div class="appbar">
+    <div class="title">Practice Results</div>
+  </div>
+  <div class="wrap">
+    <div class="card results" id="results-body"><!-- rendered --></div>
+  </div>
+</section>
+
+<!-- ===================== Calculator panel ===================== -->
+<div class="panel" id="panel-calc" role="dialog" aria-label="Desmos calculator">
+  <div class="panel-head">
+    <strong>Desmos Calculator</strong>
+    <button id="close-calc" aria-label="Close calculator">&times;</button>
+  </div>
+  <div id="desmos-calc"></div>
+  <div class="calc-note" id="calc-note"></div>
+</div>
+
+<!-- ===================== Formula panel ===================== -->
+<div class="panel" id="panel-formula" role="dialog" aria-label="Formula sheet">
+  <div class="panel-head">
+    <strong>Algebra C&amp;C Formula Sheet</strong>
+    <button id="close-formula" aria-label="Close formula sheet">&times;</button>
+  </div>
+  <div class="panel-body formula-sheet">
+    <h4>Linear</h4>
+    <p>Slope: m = (y₂ − y₁) / (x₂ − x₁)</p>
+    <p>Slope-intercept: y = mx + b</p>
+    <p>Point-slope: y − y₁ = m(x − x₁)</p>
+    <p>Standard form: Ax + By = C</p>
+    <h4>Sequences</h4>
+    <p>Arithmetic explicit: aₙ = a₁ + (n − 1)d</p>
+    <p>Arithmetic recursive: aₙ = aₙ₋₁ + d</p>
+    <p>Geometric explicit: aₙ = a₁ · r⁽ⁿ⁻¹⁾</p>
+    <p>Geometric recursive: aₙ = r · aₙ₋₁</p>
+    <h4>Distance &amp; Midpoint</h4>
+    <p>Distance: d = √[(x₂ − x₁)² + (y₂ − y₁)²]</p>
+    <p>Midpoint: ((x₁ + x₂)/2 , (y₁ + y₂)/2)</p>
+    <h4>Quadratic</h4>
+    <p>Standard: y = ax² + bx + c</p>
+    <p>Vertex: y = a(x − h)² + k</p>
+    <p>Factored: y = a(x − p)(x − q)</p>
+    <p>Formula: x = [−b ± √(b² − 4ac)] / 2a</p>
+    <h4>Exponential</h4>
+    <p>y = a · bˣ</p>
+    <p>Compound interest: A = P(1 + r)ᵗ</p>
+    <h4>Statistics</h4>
+    <p class="d">Mean: sum of values ÷ number of values</p>
+    <p>IQR = Q₃ − Q₁</p>
+    <p class="d">Outlier: more than 1.5 × IQR below Q₁ or above Q₃</p>
+  </div>
+</div>
+
+<!-- ===================== Submit confirm ===================== -->
+<div class="overlay" id="overlay-confirm">
+  <div class="dialog" role="dialog" aria-modal="true" aria-label="Confirm submission">
+    <h3>Submit your practice test?</h3>
+    <p id="confirm-text"></p>
+    <div class="row">
+      <button class="ghost" id="confirm-cancel">Keep working</button>
+      <button class="primary" style="width:auto;" id="confirm-submit">Submit now</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ============================================================
+   ITEM BANK
+   Each item:
+     id, standard, domain, dok, type ('single'|'multi'|'dnd'),
+     stem, instruction (optional)
+     single/multi: options [{id,text}], correct: [ids]
+     dnd: tokens [{id,text}], buckets [{id,label}], correct: {tokenId: bucketId}
+     explanation, vocab: []
+   Correct answers are matched by id, and option order is shuffled
+   at render time, so position/letter is never a tell.
+   ============================================================ */
+const ITEMS = [
+  // ---------- A.FGR.2 ----------
+  {
+    id: "FGR2-1", standard: "A.FGR.2", domain: "Functional & Graphical Reasoning", dok: 1, type: "single",
+    stem: "The first four terms of an arithmetic sequence are 4, 7, 10, 13. Which explicit formula gives the nth term?",
+    options: [
+      { id: "a", text: "aₙ = 3n + 1" },
+      { id: "b", text: "aₙ = 3n + 4" },
+      { id: "c", text: "aₙ = 3n − 1" },
+      { id: "d", text: "aₙ = 4n + 3" }
+    ],
+    correct: ["a"],
+    explanation: "The common difference is 3 and the first term is 4. The explicit form is aₙ = a₁ + (n − 1)d = 4 + 3(n − 1) = 3n + 1. Check: n = 1 gives 4, n = 2 gives 7. The other formulas fail at n = 1.",
+    vocab: ["arithmetic sequence", "explicit formula", "common difference"]
+  },
+  {
+    id: "FGR2-2", standard: "A.FGR.2", domain: "Functional & Graphical Reasoning", dok: 2, type: "single",
+    stem: "A gym charges a $25 joining fee plus $15 per month. Total cost is f(x) = 15x + 25, where x is the number of months. What does f(6) represent?",
+    options: [
+      { id: "a", text: "The total cost after 6 months, $115" },
+      { id: "b", text: "The cost for 6 members in month 1" },
+      { id: "c", text: "The number of months needed to reach $6" },
+      { id: "d", text: "The monthly fee, which is $6" }
+    ],
+    correct: ["a"],
+    explanation: "f(6) means evaluate the function at x = 6 months: f(6) = 15(6) + 25 = 90 + 25 = 115. The input is months and the output is total dollars, so f(6) is the cost after 6 months.",
+    vocab: ["function notation", "rate of change", "y-intercept"]
+  },
+  {
+    id: "FGR2-3", standard: "A.FGR.2", domain: "Functional & Graphical Reasoning", dok: 2, type: "single",
+    stem: "A company tracks revenue with f(x) = 2x + 3 for the first 12 months, where x is months since tracking began. Which interval represents the domain in this context?",
+    options: [
+      { id: "a", text: "[0, 12]" },
+      { id: "b", text: "(0, 12)" },
+      { id: "c", text: "[0, 27]" },
+      { id: "d", text: "(−∞, ∞)" }
+    ],
+    correct: ["a"],
+    explanation: "The domain is the set of inputs (months). Tracking covers month 0 through month 12 inclusive, so the domain is [0, 12]. Brackets include the endpoints. (0, 27) describes the range, and (−∞, ∞) ignores the real-world limits.",
+    vocab: ["domain", "interval notation"]
+  },
+
+  // ---------- A.FGR.7 ----------
+  {
+    id: "FGR7-1", standard: "A.FGR.7", domain: "Functional & Graphical Reasoning", dok: 1, type: "single",
+    stem: "What is the vertex of the parabola y = 2(x − 3)² + 5?",
+    options: [
+      { id: "a", text: "(3, 5)" },
+      { id: "b", text: "(−3, 5)" },
+      { id: "c", text: "(3, −5)" },
+      { id: "d", text: "(−3, −5)" }
+    ],
+    correct: ["a"],
+    explanation: "Vertex form is y = a(x − h)² + k with vertex (h, k). Here the expression is (x − 3), so h = 3, and k = 5. The vertex is (3, 5). The sign of h flips because the form subtracts h.",
+    vocab: ["vertex", "vertex form", "parabola"]
+  },
+  {
+    id: "FGR7-2", standard: "A.FGR.7", domain: "Functional & Graphical Reasoning", dok: 2, type: "single",
+    stem: "A ball's height in feet is h(t) = −16t² + 48t + 4, where t is seconds. At what time does the ball reach its maximum height?",
+    options: [
+      { id: "a", text: "1.5 seconds" },
+      { id: "b", text: "3 seconds" },
+      { id: "c", text: "0.75 seconds" },
+      { id: "d", text: "40 seconds" }
+    ],
+    correct: ["a"],
+    explanation: "The maximum of a downward parabola is at the vertex, t = −b / (2a). Here a = −16 and b = 48, so t = −48 / (2 · −16) = −48 / −32 = 1.5 seconds. (40 feet is the maximum height, not the time.)",
+    vocab: ["vertex", "axis of symmetry", "maximum"]
+  },
+  {
+    id: "FGR7-3", standard: "A.FGR.7", domain: "Functional & Graphical Reasoning", dok: 2, type: "single",
+    stem: "Which equation has zeros at x = −2 and x = 5?",
+    options: [
+      { id: "a", text: "y = (x + 2)(x − 5)" },
+      { id: "b", text: "y = (x − 2)(x + 5)" },
+      { id: "c", text: "y = (x + 2)(x + 5)" },
+      { id: "d", text: "y = (x − 2)(x − 5)" }
+    ],
+    correct: ["a"],
+    explanation: "A zero is an x-value that makes a factor equal 0. For a zero at x = −2, the factor must be (x + 2), since −2 + 2 = 0. For a zero at x = 5, the factor must be (x − 5). So y = (x + 2)(x − 5).",
+    vocab: ["zeros", "roots", "factored form"]
+  },
+
+  // ---------- A.FGR.9 ----------
+  {
+    id: "FGR9-1", standard: "A.FGR.9", domain: "Functional & Graphical Reasoning", dok: 1, type: "single",
+    stem: "A population is modeled by P(t) = 350(1.08)ᵗ, where t is years. What is the initial population?",
+    options: [
+      { id: "a", text: "350" },
+      { id: "b", text: "1.08" },
+      { id: "c", text: "8" },
+      { id: "d", text: "378" }
+    ],
+    correct: ["a"],
+    explanation: "The initial value is the output when t = 0. Since (1.08)⁰ = 1, P(0) = 350(1) = 350. In the form a · bᵗ, the value a = 350 is always the starting amount; 1.08 is the growth factor.",
+    vocab: ["initial value", "exponential function", "growth factor"]
+  },
+  {
+    id: "FGR9-2", standard: "A.FGR.9", domain: "Functional & Graphical Reasoning", dok: 2, type: "single",
+    stem: "Which function represents exponential decay?",
+    options: [
+      { id: "a", text: "f(x) = 200(0.85)ˣ" },
+      { id: "b", text: "f(x) = 200(1.15)ˣ" },
+      { id: "c", text: "f(x) = 200(2)ˣ" },
+      { id: "d", text: "f(x) = 200x" }
+    ],
+    correct: ["a"],
+    explanation: "Exponential decay happens when the base (growth factor) is between 0 and 1. Only 0.85 is between 0 and 1, so f(x) = 200(0.85)ˣ decays. Bases above 1 (1.15 and 2) grow, and 200x is linear, not exponential.",
+    vocab: ["exponential decay", "growth factor", "base"]
+  },
+  {
+    id: "FGR9-3", standard: "A.FGR.9", domain: "Functional & Graphical Reasoning", dok: 2, type: "single",
+    stem: "Phone sales are modeled by S(t) = 500(1.2)ᵗ, where t is months. About how many phones are sold after 3 months? (Round to the nearest whole number.)",
+    options: [
+      { id: "a", text: "864" },
+      { id: "b", text: "600" },
+      { id: "c", text: "1,200" },
+      { id: "d", text: "1,800" }
+    ],
+    correct: ["a"],
+    explanation: "Evaluate at t = 3: S(3) = 500(1.2)³ = 500(1.728) = 864. A common error is multiplying 500 · 1.2 · 3 = 1,800, which treats growth as linear instead of exponential.",
+    vocab: ["exponential growth", "evaluate"]
+  },
+
+  // ---------- A.PAR.4 ----------
+  {
+    id: "PAR4-1", standard: "A.PAR.4", domain: "Patterning & Algebraic Reasoning", dok: 2, type: "single",
+    stem: "A class trip costs $250 per student and $275 per adult. The total must stay below $6,000. Which inequality models this, where s is students and a is adults?",
+    options: [
+      { id: "a", text: "250s + 275a < 6000" },
+      { id: "b", text: "250s + 275a ≤ 6000" },
+      { id: "c", text: "250s + 275a > 6000" },
+      { id: "d", text: "275s + 250a < 6000" }
+    ],
+    correct: ["a"],
+    explanation: "Cost per student times students, plus cost per adult times adults, gives total cost: 250s + 275a. \"Below $6,000\" means strictly less than, so the symbol is < (not ≤, which would allow exactly 6,000).",
+    vocab: ["inequality", "constraint"]
+  },
+  {
+    id: "PAR4-2", standard: "A.PAR.4", domain: "Patterning & Algebraic Reasoning", dok: 3, type: "single",
+    stem: "A trip costs $175 per student and $150 per adult, with a $6,000 budget. If 10 adults attend, what is the greatest number of students who can attend?",
+    options: [
+      { id: "a", text: "25" },
+      { id: "b", text: "26" },
+      { id: "c", text: "30" },
+      { id: "d", text: "34" }
+    ],
+    correct: ["a"],
+    explanation: "Adults cost 150(10) = 1,500, leaving 6,000 − 1,500 = 4,500 for students. Divide: 4,500 / 175 = 25.7. Since a partial student is impossible and the budget cannot be exceeded, round down to 25.",
+    vocab: ["constraint", "inequality", "solution"]
+  },
+  {
+    id: "PAR4-3", standard: "A.PAR.4", domain: "Patterning & Algebraic Reasoning", dok: 2, type: "multi",
+    stem: "Select all ordered pairs that are solutions to y > 2x − 1.",
+    instruction: "Select all that apply.",
+    options: [
+      { id: "a", text: "(0, 0)" },
+      { id: "b", text: "(1, 4)" },
+      { id: "c", text: "(−1, 0)" },
+      { id: "d", text: "(2, 1)" },
+      { id: "e", text: "(3, 2)" }
+    ],
+    correct: ["a", "b", "c"],
+    explanation: "Substitute each point and check y > 2x − 1. (0,0): 0 > −1 true. (1,4): 4 > 1 true. (−1,0): 0 > −3 true. (2,1): 1 > 3 false. (3,2): 2 > 5 false. Solutions are (0,0), (1,4), and (−1,0).",
+    vocab: ["solution", "inequality", "half-plane"]
+  },
+
+  // ---------- A.PAR.6 ----------
+  {
+    id: "PAR6-1", standard: "A.PAR.6", domain: "Patterning & Algebraic Reasoning", dok: 1, type: "single",
+    stem: "A rectangle has length (x + 6) and width (2x + 3). Which expression is its area in standard form?",
+    options: [
+      { id: "a", text: "2x² + 15x + 18" },
+      { id: "b", text: "2x² + 9x + 18" },
+      { id: "c", text: "2x² + 18x + 18" },
+      { id: "d", text: "2x² + 15x + 9" }
+    ],
+    correct: ["a"],
+    explanation: "Area = length × width = (x + 6)(2x + 3). Distribute: 2x² + 3x + 12x + 18. Combine like terms: 2x² + 15x + 18. The middle term comes from 3x + 12x = 15x.",
+    vocab: ["standard form", "binomial", "like terms"]
+  },
+  {
+    id: "PAR6-2", standard: "A.PAR.6", domain: "Patterning & Algebraic Reasoning", dok: 2, type: "single",
+    stem: "What are the solutions to x² − 7x + 10 = 0?",
+    options: [
+      { id: "a", text: "x = 2 and x = 5" },
+      { id: "b", text: "x = −2 and x = −5" },
+      { id: "c", text: "x = 1 and x = 10" },
+      { id: "d", text: "x = −1 and x = −10" }
+    ],
+    correct: ["a"],
+    explanation: "Factor: find two numbers that multiply to 10 and add to −7. Those are −2 and −5, so (x − 2)(x − 5) = 0. Set each factor to 0: x = 2 or x = 5.",
+    vocab: ["factor", "solution", "root"]
+  },
+  {
+    id: "PAR6-3", standard: "A.PAR.6", domain: "Patterning & Algebraic Reasoning", dok: 3, type: "single",
+    stem: "Lydia says (x + 4)(x − 7) equals x² + 11x − 28. Noah says the two expressions are quadratic but not equal. Who is correct, and why?",
+    options: [
+      { id: "a", text: "Noah; the product is x² − 3x − 28, so they are not equal." },
+      { id: "b", text: "Lydia; both are quadratic, so they must be equal." },
+      { id: "c", text: "Noah; the product is x² + 11x + 28." },
+      { id: "d", text: "Lydia; the product is x² + 11x − 28." }
+    ],
+    correct: ["a"],
+    explanation: "Expand (x + 4)(x − 7): x² − 7x + 4x − 28 = x² − 3x − 28. The middle term is −3x, not +11x, so Noah is right that they are not equal. Being quadratic does not make two expressions equal.",
+    vocab: ["equivalent expressions", "like terms"]
+  },
+
+  // ---------- A.PAR.8 ----------
+  {
+    id: "PAR8-1", standard: "A.PAR.8", domain: "Patterning & Algebraic Reasoning", dok: 1, type: "single",
+    stem: "A culture has 3 cells on day 1, 9 cells on day 2, and 27 cells on day 3. Which equation models the number of cells on day n?",
+    options: [
+      { id: "a", text: "f(n) = 3ⁿ" },
+      { id: "b", text: "f(n) = 3n" },
+      { id: "c", text: "f(n) = n³" },
+      { id: "d", text: "f(n) = 3 + n" }
+    ],
+    correct: ["a"],
+    explanation: "Each day the count multiplies by 3 (3, 9, 27), which is exponential, not additive. f(n) = 3ⁿ gives 3, 9, 27 for n = 1, 2, 3. f(n) = 3n would give 3, 6, 9.",
+    vocab: ["exponential", "base", "common ratio"]
+  },
+  {
+    id: "PAR8-2", standard: "A.PAR.8", domain: "Patterning & Algebraic Reasoning", dok: 2, type: "single",
+    stem: "A car worth $52,350 loses 5% of its value each year. Which function models its value after t years?",
+    options: [
+      { id: "a", text: "P(t) = 52,350(0.95)ᵗ" },
+      { id: "b", text: "P(t) = 52,350(1.05)ᵗ" },
+      { id: "c", text: "P(t) = 52,350(0.05)ᵗ" },
+      { id: "d", text: "P(t) = 52,350(5)ᵗ" }
+    ],
+    correct: ["a"],
+    explanation: "Losing 5% per year keeps 95% each year, so the decay factor is 1 − 0.05 = 0.95. The function is P(t) = 52,350(0.95)ᵗ. Using 1.05 would model growth, and 0.05 would mean keeping only 5%.",
+    vocab: ["exponential decay", "decay factor"]
+  },
+  {
+    id: "PAR8-3", standard: "A.PAR.8", domain: "Patterning & Algebraic Reasoning", dok: 2, type: "single",
+    stem: "$5,000 is placed in an account earning 3.3% interest compounded annually, with no deposits or withdrawals. Which function gives the balance after t years?",
+    options: [
+      { id: "a", text: "f(t) = 5,000(1.033)ᵗ" },
+      { id: "b", text: "f(t) = 5,000(0.033)ᵗ" },
+      { id: "c", text: "f(t) = 5,000(0.967)ᵗ" },
+      { id: "d", text: "f(t) = 5,000(1.33)ᵗ" }
+    ],
+    correct: ["a"],
+    explanation: "Compound growth uses A = P(1 + r)ᵗ. Here P = 5,000 and r = 0.033, so the growth factor is 1 + 0.033 = 1.033. The function is 5,000(1.033)ᵗ. Note 1.33 would be a 33% rate, not 3.3%.",
+    vocab: ["compound interest", "growth factor"]
+  },
+
+  // ---------- A.NR.5 ----------
+  {
+    id: "NR5-1", standard: "A.NR.5", domain: "Numerical Reasoning", dok: 2, type: "single",
+    stem: "Which expression is equivalent to √108?",
+    options: [
+      { id: "a", text: "6√3" },
+      { id: "b", text: "3√6" },
+      { id: "c", text: "9√3" },
+      { id: "d", text: "12√3" }
+    ],
+    correct: ["a"],
+    explanation: "Find the largest perfect-square factor of 108. Since 108 = 36 · 3, √108 = √36 · √3 = 6√3. Check by squaring: (6√3)² = 36 · 3 = 108.",
+    vocab: ["radical", "simplify", "perfect square"]
+  },
+  {
+    id: "NR5-2", standard: "A.NR.5", domain: "Numerical Reasoning", dok: 1, type: "single",
+    stem: "Is √25 a rational or an irrational number?",
+    options: [
+      { id: "a", text: "Rational, because √25 = 5, an integer." },
+      { id: "b", text: "Irrational, because it contains a radical." },
+      { id: "c", text: "Rational, because every square root is rational." },
+      { id: "d", text: "Irrational, because 25 is odd." }
+    ],
+    correct: ["a"],
+    explanation: "√25 = 5, which is an integer and therefore rational. A radical is only irrational when its value is a non-terminating, non-repeating decimal (like √2). Not every square root is rational, so that reasoning is wrong even though the answer happens to match.",
+    vocab: ["rational", "irrational", "perfect square"]
+  },
+
+  // ---------- A.GSR.3 ----------
+  {
+    id: "GSR3-1", standard: "A.GSR.3", domain: "Geometric & Spatial Reasoning", dok: 1, type: "single",
+    stem: "What is the distance between the points (2, 1) and (6, 4)?",
+    options: [
+      { id: "a", text: "5" },
+      { id: "b", text: "7" },
+      { id: "c", text: "√7" },
+      { id: "d", text: "25" }
+    ],
+    correct: ["a"],
+    explanation: "Use the distance formula: d = √[(6 − 2)² + (4 − 1)²] = √[16 + 9] = √25 = 5. The value 25 is what you get before taking the square root, and 7 comes from adding 4 + 3 instead of using the formula.",
+    vocab: ["distance formula"]
+  },
+  {
+    id: "GSR3-2", standard: "A.GSR.3", domain: "Geometric & Spatial Reasoning", dok: 1, type: "single",
+    stem: "What is the midpoint of the segment connecting (2, 1) and (6, 4)?",
+    options: [
+      { id: "a", text: "(4, 2.5)" },
+      { id: "b", text: "(4, 3)" },
+      { id: "c", text: "(2, 1.5)" },
+      { id: "d", text: "(8, 5)" }
+    ],
+    correct: ["a"],
+    explanation: "Average the x-values and the y-values: ((2 + 6)/2, (1 + 4)/2) = (4, 2.5). The point (8, 5) is the sum of the coordinates, not the average.",
+    vocab: ["midpoint formula"]
+  },
+  {
+    id: "GSR3-3", standard: "A.GSR.3", domain: "Geometric & Spatial Reasoning", dok: 2, type: "single",
+    stem: "Segment BC connects B(10, 6) and C(12, 2). What is the slope of a line perpendicular to BC?",
+    options: [
+      { id: "a", text: "1/2" },
+      { id: "b", text: "−2" },
+      { id: "c", text: "2" },
+      { id: "d", text: "−1/2" }
+    ],
+    correct: ["a"],
+    explanation: "Slope of BC = (2 − 6)/(12 − 10) = −4/2 = −2. A perpendicular line has the negative reciprocal slope: flip −2 to −1/2 and change the sign to get 1/2.",
+    vocab: ["slope", "perpendicular", "negative reciprocal"]
+  },
+
+  // ---------- A.DSR.10 ----------
+  {
+    id: "DSR10-1", standard: "A.DSR.10", domain: "Data & Statistical Reasoning", dok: 2, type: "single",
+    stem: "A class's test scores are 75, 80, 78, 85, 90, 82, 88, 84, 81, 87. What is the mean score?",
+    options: [
+      { id: "a", text: "83" },
+      { id: "b", text: "82" },
+      { id: "c", text: "84" },
+      { id: "d", text: "85" }
+    ],
+    correct: ["a"],
+    explanation: "Add all ten scores to get 830, then divide by the number of values: 830 / 10 = 83. The mean is the sum of the data divided by how many values there are.",
+    vocab: ["mean", "measure of center"]
+  },
+  {
+    id: "DSR10-2", standard: "A.DSR.10", domain: "Data & Statistical Reasoning", dok: 2, type: "single",
+    stem: "The data set is 4, 6, 7, 8, 8, 9, 10, 10, 11, 12, 14, 18, 22, 25. What is the median?",
+    options: [
+      { id: "a", text: "10" },
+      { id: "b", text: "9" },
+      { id: "c", text: "11" },
+      { id: "d", text: "12" }
+    ],
+    correct: ["a"],
+    explanation: "There are 14 values, so the median is the average of the 7th and 8th. Both are 10, so the median is (10 + 10)/2 = 10. With an even count you must average the two middle values.",
+    vocab: ["median", "quartile"]
+  },
+  {
+    id: "DSR10-3", standard: "A.DSR.10", domain: "Data & Statistical Reasoning", dok: 2, type: "single",
+    stem: "A scatter plot shows that as the number of hours studied increases, test scores also increase. Which best describes this relationship?",
+    options: [
+      { id: "a", text: "Positive correlation" },
+      { id: "b", text: "Negative correlation" },
+      { id: "c", text: "No correlation" },
+      { id: "d", text: "Causation, not correlation" }
+    ],
+    correct: ["a"],
+    explanation: "When one variable increases as the other increases, the association is a positive correlation. A negative correlation would mean scores drop as study hours rise. Correlation describes the pattern; it does not by itself prove that studying causes the scores.",
+    vocab: ["correlation", "scatter plot", "bivariate data"]
+  },
+
+  // ---------- Drag & drop (A.PAR.8 / A.FGR.9) ----------
+  {
+    id: "PAR8-DND", standard: "A.PAR.8", domain: "Patterning & Algebraic Reasoning", dok: 2, type: "dnd",
+    stem: "Sort each function into the correct category.",
+    instruction: "Drag each function into a bucket, or tap a function then tap a bucket.",
+    tokens: [
+      { id: "t1", text: "f(t) = 8,000(2)ᵗ" },
+      { id: "t2", text: "f(t) = 5,000(0.967)ᵗ" },
+      { id: "t3", text: "f(t) = 8,000(0.5)ᵗ" },
+      { id: "t4", text: "f(t) = 5,000(1.033)ᵗ" }
+    ],
+    buckets: [
+      { id: "growth", label: "Exponential Growth" },
+      { id: "decay", label: "Exponential Decay" }
+    ],
+    correct: { t1: "growth", t2: "decay", t3: "decay", t4: "growth" },
+    explanation: "Compare each base to 1. Bases above 1 grow: 2 and 1.033 are growth. Bases between 0 and 1 decay: 0.967 and 0.5 are decay. So 8,000(2)ᵗ and 5,000(1.033)ᵗ are growth; 5,000(0.967)ᵗ and 8,000(0.5)ᵗ are decay.",
+    vocab: ["exponential growth", "exponential decay", "base"]
+  }
+];
+
+/* ============================================================
+   STATE
+   ============================================================ */
+const state = {
+  name: "",
+  current: 0,
+  // responses: itemId -> { value }
+  //   single: value = optionId (string)
+  //   multi:  value = array of optionIds
+  //   dnd:    value = { tokenId: bucketId }
+  responses: {},
+  flags: {},
+  order: [] // shuffled option order per item id (for stable rendering)
+};
+
+/* ---------- Utilities ---------- */
+function $(sel) { return document.querySelector(sel); }
+function shuffle(arr) {
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+function showScreen(id) {
+  document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"));
+  $("#" + id).classList.add("active");
+  window.scrollTo(0, 0);
+}
+
+/* ---------- Welcome ---------- */
+$("#start-btn").addEventListener("click", startTest);
+$("#student-name").addEventListener("keydown", e => { if (e.key === "Enter") startTest(); });
+
+function startTest() {
+  const name = $("#student-name").value.trim();
+  if (name.length < 2) {
+    $("#name-err").textContent = "Please enter your full name to begin.";
+    $("#student-name").focus();
+    return;
+  }
+  state.name = name;
+  // Precompute shuffled option order per item (so it doesn't reshuffle on every nav).
+  ITEMS.forEach(it => {
+    if (it.type === "single" || it.type === "multi") {
+      state.order[it.id] = shuffle(it.options.map(o => o.id));
+    } else if (it.type === "dnd") {
+      state.order[it.id] = shuffle(it.tokens.map(t => t.id));
+    }
+  });
+  $("#appbar-student").textContent = name;
+  buildNavigator();
+  state.current = 0;
+  renderItem();
+  showScreen("screen-test");
+}
+
+/* ---------- Navigator ---------- */
+function buildNavigator() {
+  const nav = $("#navigator");
+  nav.innerHTML = "";
+  ITEMS.forEach((it, i) => {
+    const b = document.createElement("button");
+    b.className = "nav-cell";
+    b.textContent = (i + 1);
+    b.setAttribute("aria-label", "Go to question " + (i + 1));
+    b.addEventListener("click", () => { state.current = i; renderItem(); });
+    nav.appendChild(b);
+  });
+  refreshNavigator();
+}
+function isAnswered(it) {
+  const r = state.responses[it.id];
+  if (!r) return false;
+  if (it.type === "single") return !!r.value;
+  if (it.type === "multi") return Array.isArray(r.value) && r.value.length > 0;
+  if (it.type === "dnd") return Object.keys(r.value || {}).length === it.tokens.length;
+  return false;
+}
+function refreshNavigator() {
+  const cells = $("#navigator").children;
+  ITEMS.forEach((it, i) => {
+    const c = cells[i];
+    c.classList.toggle("answered", isAnswered(it));
+    c.classList.toggle("flagged", !!state.flags[it.id]);
+    c.classList.toggle("current", i === state.current);
+  });
+}
+
+/* ---------- Render an item ---------- */
+function renderItem() {
+  const it = ITEMS[state.current];
+  const body = $("#item-body");
+  const dokLabel = "DOK " + it.dok;
+
+  let html = `
+    <div class="eyebrow">
+      <span class="chip">${it.standard}</span>
+      <span>${it.domain}</span>
+      <span class="chip">${dokLabel}</span>
+    </div>
+    <p class="stem">${it.stem}</p>
+    ${it.instruction ? `<p class="instruction">${it.instruction}</p>` : ""}
+  `;
+
+  if (it.type === "single" || it.type === "multi") {
+    html += `<div class="options" id="opts"></div>`;
+  } else if (it.type === "dnd") {
+    html += renderDndShell(it);
+  }
+
+  body.innerHTML = html;
+
+  if (it.type === "single" || it.type === "multi") {
+    renderChoices(it);
+  } else if (it.type === "dnd") {
+    wireDnd(it);
+  }
+
+  // Progress + nav buttons
+  $("#progress-label").textContent = `Question ${state.current + 1} of ${ITEMS.length}`;
+  $("#progress-fill").style.width = ((state.current + 1) / ITEMS.length * 100) + "%";
+  $("#prev-btn").disabled = state.current === 0;
+  $("#next-btn").disabled = state.current === ITEMS.length - 1;
+  const fb = $("#flag-btn");
+  fb.setAttribute("aria-pressed", state.flags[it.id] ? "true" : "false");
+  fb.textContent = state.flags[it.id] ? "Flagged" : "Flag for review";
+
+  refreshNavigator();
+}
+
+function renderChoices(it) {
+  const wrap = $("#opts");
+  const orderedIds = state.order[it.id];
+  const resp = state.responses[it.id] ? state.responses[it.id].value : (it.type === "multi" ? [] : null);
+  orderedIds.forEach(oid => {
+    const opt = it.options.find(o => o.id === oid);
+    const row = document.createElement("label");
+    row.className = "opt";
+    const input = document.createElement("input");
+    input.type = it.type === "multi" ? "checkbox" : "radio";
+    input.name = "opt-" + it.id;
+    input.value = oid;
+    if (it.type === "single" && resp === oid) { input.checked = true; row.classList.add("selected"); }
+    if (it.type === "multi" && Array.isArray(resp) && resp.includes(oid)) { input.checked = true; row.classList.add("selected"); }
+    input.addEventListener("change", () => selectChoice(it, oid, input));
+    const span = document.createElement("span");
+    span.className = "opt-text";
+    span.textContent = opt.text;
+    row.appendChild(input);
+    row.appendChild(span);
+    wrap.appendChild(row);
+  });
+}
+
+function selectChoice(it, oid, input) {
+  if (it.type === "single") {
+    state.responses[it.id] = { value: oid };
+  } else {
+    let cur = (state.responses[it.id] && state.responses[it.id].value) || [];
+    cur = cur.slice();
+    if (input.checked) { if (!cur.includes(oid)) cur.push(oid); }
+    else { cur = cur.filter(x => x !== oid); }
+    state.responses[it.id] = { value: cur };
+  }
+  // update selected styling
+  $("#opts").querySelectorAll(".opt").forEach(row => {
+    const inp = row.querySelector("input");
+    row.classList.toggle("selected", inp.checked);
+  });
+  refreshNavigator();
+}
+
+/* ---------- Drag & drop ---------- */
+let pickedToken = null;
+
+function renderDndShell(it) {
+  const tokensHtml = `<div class="dnd-tokens" id="dnd-pool">
+      <span class="dnd-tokens-label">Items to sort</span>
+    </div>`;
+  const buckets = it.buckets.map(b =>
+    `<div class="bucket" data-bucket="${b.id}">
+       <h4>${b.label}</h4>
+       <div class="drop-zone" data-bucket="${b.id}"></div>
+     </div>`).join("");
+  return tokensHtml + `<div class="dnd-buckets">${buckets}</div>`;
+}
+
+function wireDnd(it) {
+  const pool = $("#dnd-pool");
+  const placed = (state.responses[it.id] && state.responses[it.id].value) || {};
+
+  // Build tokens in saved positions
+  state.order[it.id].forEach(tid => {
+    const tok = it.tokens.find(t => t.id === tid);
+    const el = makeToken(it, tok);
+    const target = placed[tid]
+      ? document.querySelector(`.drop-zone[data-bucket="${placed[tid]}"]`)
+      : pool;
+    target.appendChild(el);
+  });
+
+  // Drop targets: each zone + the pool
+  const zones = [...document.querySelectorAll(".drop-zone"), pool];
+  zones.forEach(zone => {
+    zone.addEventListener("dragover", e => { e.preventDefault(); zone.closest(".bucket")?.classList.add("over"); });
+    zone.addEventListener("dragleave", () => zone.closest(".bucket")?.classList.remove("over"));
+    zone.addEventListener("drop", e => {
+      e.preventDefault();
+      zone.closest(".bucket")?.classList.remove("over");
+      const tid = e.dataTransfer.getData("text/plain");
+      assignToken(it, tid, zone);
+    });
+    // click-to-place (touch / keyboard friendly)
+    zone.addEventListener("click", () => {
+      if (pickedToken) { assignToken(it, pickedToken, zone); clearPick(); }
+    });
+  });
+}
+
+function makeToken(it, tok) {
+  const el = document.createElement("button");
+  el.className = "token";
+  el.textContent = tok.text;
+  el.setAttribute("draggable", "true");
+  el.dataset.token = tok.id;
+  el.addEventListener("dragstart", e => e.dataTransfer.setData("text/plain", tok.id));
+  el.addEventListener("click", e => {
+    e.stopPropagation();
+    if (pickedToken === tok.id) { clearPick(); return; }
+    clearPick();
+    pickedToken = tok.id;
+    el.classList.add("picked");
+  });
+  return el;
+}
+function clearPick() {
+  pickedToken = null;
+  document.querySelectorAll(".token.picked").forEach(t => t.classList.remove("picked"));
+}
+function assignToken(it, tid, zone) {
+  const tokenEl = document.querySelector(`.token[data-token="${tid}"]`);
+  if (!tokenEl) return;
+  zone.appendChild(tokenEl);
+  const bucket = zone.dataset.bucket;
+  const cur = Object.assign({}, (state.responses[it.id] && state.responses[it.id].value) || {});
+  if (zone.id === "dnd-pool" || !bucket) {
+    delete cur[tid]; // returned to pool = unassigned
+  } else {
+    cur[tid] = bucket;
+  }
+  state.responses[it.id] = { value: cur };
+  refreshNavigator();
+}
+
+/* ---------- Item nav buttons ---------- */
+$("#prev-btn").addEventListener("click", () => { if (state.current > 0) { state.current--; renderItem(); } });
+$("#next-btn").addEventListener("click", () => { if (state.current < ITEMS.length - 1) { state.current++; renderItem(); } });
+$("#flag-btn").addEventListener("click", () => {
+  const it = ITEMS[state.current];
+  state.flags[it.id] = !state.flags[it.id];
+  renderItem();
+});
+
+/* ---------- Tool panels ---------- */
+$("#btn-calc").addEventListener("click", () => togglePanel("calc"));
+$("#btn-formula").addEventListener("click", () => togglePanel("formula"));
+$("#close-calc").addEventListener("click", () => togglePanel("calc", false));
+$("#close-formula").addEventListener("click", () => togglePanel("formula", false));
+
+let desmosLoaded = false, desmosInstance = null;
+function togglePanel(which, force) {
+  const panel = $("#panel-" + which);
+  const btn = which === "calc" ? $("#btn-calc") : $("#btn-formula");
+  const open = (typeof force === "boolean") ? force : !panel.classList.contains("open");
+  panel.classList.toggle("open", open);
+  btn.setAttribute("aria-pressed", open ? "true" : "false");
+  if (which === "calc" && open) loadDesmos();
+}
+function loadDesmos() {
+  if (desmosLoaded) return;
+  desmosLoaded = true;
+  const s = document.createElement("script");
+  s.src = "https://www.desmos.com/api/v1.11/calculator.js?apiKey=" + DESMOS_API_KEY;
+  s.onload = () => {
+    try {
+      desmosInstance = Desmos.GraphingCalculator($("#desmos-calc"), { keypad: true, expressions: true });
+    } catch (e) {
+      $("#calc-note").textContent = "Calculator could not start.";
+    }
+  };
+  s.onerror = () => {
+    $("#desmos-calc").innerHTML = "";
+    $("#calc-note").textContent = "The calculator needs an internet connection and could not load. Use the formula sheet or a handheld calculator.";
+  };
+  document.head.appendChild(s);
+}
+
+/* ---------- Submit flow ---------- */
+$("#submit-open").addEventListener("click", openConfirm);
+$("#confirm-cancel").addEventListener("click", () => $("#overlay-confirm").classList.remove("open"));
+$("#confirm-submit").addEventListener("click", finishTest);
+
+function openConfirm() {
+  const answered = ITEMS.filter(isAnswered).length;
+  const remaining = ITEMS.length - answered;
+  const flagged = Object.values(state.flags).filter(Boolean).length;
+  let msg = `You have answered ${answered} of ${ITEMS.length} questions.`;
+  if (remaining > 0) msg += ` ${remaining} ${remaining === 1 ? "question is" : "questions are"} still blank.`;
+  if (flagged > 0) msg += ` ${flagged} ${flagged === 1 ? "is" : "are"} flagged for review.`;
+  msg += " Once you submit, you cannot change your answers.";
+  $("#confirm-text").textContent = msg;
+  $("#overlay-confirm").classList.add("open");
+}
+
+/* ---------- Scoring ---------- */
+function gradeItem(it) {
+  const r = state.responses[it.id];
+  if (!r) return false;
+  if (it.type === "single") {
+    return r.value === it.correct[0];
+  }
+  if (it.type === "multi") {
+    const sel = (r.value || []).slice().sort();
+    const key = it.correct.slice().sort();
+    return sel.length === key.length && sel.every((v, i) => v === key[i]);
+  }
+  if (it.type === "dnd") {
+    const v = r.value || {};
+    return it.tokens.every(t => v[t.id] === it.correct[t.id]);
+  }
+  return false;
+}
+
+function computeResults() {
+  let correct = 0;
+  const domain = {}; // standard -> {correct,total}
+  const missed = [];
+  const vocab = new Set();
+
+  ITEMS.forEach(it => {
+    if (!domain[it.standard]) domain[it.standard] = { correct: 0, total: 0 };
+    domain[it.standard].total++;
+    const ok = gradeItem(it);
+    if (ok) {
+      correct++;
+      domain[it.standard].correct++;
+    } else {
+      missed.push(it);
+      (it.vocab || []).forEach(v => vocab.add(v));
+    }
+  });
+
+  const total = ITEMS.length;
+  const pct = Math.round((correct / total) * 100);
+  let level = ACHIEVEMENT_THRESHOLDS[ACHIEVEMENT_THRESHOLDS.length - 1].level;
+  for (const t of ACHIEVEMENT_THRESHOLDS) { if (pct >= t.min) { level = t.level; break; } }
+
+  return { correct, total, pct, level, domain, missed, vocab: [...vocab] };
+}
+
+async function finishTest() {
+  $("#overlay-confirm").classList.remove("open");
+  const res = computeResults();
+
+  const payload = {
+    studentName: state.name,
+    overallScore: res.pct,
+    correctItems: res.correct,
+    totalItems: res.total,
+    achievementLevel: res.level,
+    domainBreakdown: res.domain,
+    vocabularyFlags: res.vocab
+  };
+
+  renderResults(res, "pending");
+  showScreen("screen-results");
+
+  // Submit as text/plain in no-cors mode. Apps Script web apps return
+  // a redirected response browsers cannot read, which would otherwise
+  // throw even when the row IS written. no-cors lets the write succeed
+  // and resolves with an opaque response. A thrown error here means a
+  // genuine connectivity failure (truly offline / blocked), so only
+  // then do we fall back to the download.
+  let submitState = "ok";
+  try {
+    await fetch(APPS_SCRIPT_URL, {
+      method: "POST",
+      mode: "no-cors",
+      headers: { "Content-Type": "text/plain;charset=utf-8" },
+      body: JSON.stringify(payload)
+    });
+  } catch (err) {
+    submitState = "fail";
+    window.__lastPayload = payload;
+  }
+  updateSubmitStatus(submitState, payload);
+}
+
+/* ---------- Results render ---------- */
+function renderResults(res, submitState) {
+  const levelKey = res.level.split(" ")[0]; // Distinguished/Proficient/Developing/Beginning
+  const domainNames = {
+    "A.GSR.3": "Geometric & Spatial (A.GSR.3)",
+    "A.NR.5": "Numerical (A.NR.5)",
+    "A.PAR.4": "Linear Inequalities (A.PAR.4)",
+    "A.PAR.6": "Quadratics (A.PAR.6)",
+    "A.PAR.8": "Exponentials (A.PAR.8)",
+    "A.FGR.2": "Linear Functions (A.FGR.2)",
+    "A.FGR.7": "Quadratic Functions (A.FGR.7)",
+    "A.FGR.9": "Exponential Functions (A.FGR.9)",
+    "A.DSR.10": "Data & Statistics (A.DSR.10)"
+  };
+  const orderStds = ["A.GSR.3","A.NR.5","A.PAR.4","A.PAR.6","A.PAR.8","A.FGR.2","A.FGR.7","A.FGR.9","A.DSR.10"];
+
+  let bars = "";
+  orderStds.forEach(s => {
+    const d = res.domain[s];
+    if (!d) return;
+    const p = d.total ? Math.round(d.correct / d.total * 100) : 0;
+    bars += `<div class="dbar">
+      <div class="dlab"><span>${domainNames[s]}</span><b>${d.correct}/${d.total}</b></div>
+      <div class="track"><i style="width:${p}%"></i></div>
+    </div>`;
+  });
+
+  let review = "";
+  if (res.missed.length === 0) {
+    review = `<div class="all-correct">You answered every question correctly. Strong work going into the retake.</div>`;
+  } else {
+    review = res.missed.map(it => `
+      <div class="review-item">
+        <div class="ri-head">
+          <span class="chip">${it.standard}</span>
+          <span>${it.domain}</span>
+          <span class="chip">DOK ${it.dok}</span>
+        </div>
+        <p class="ri-stem">${it.stem}</p>
+        <div class="ri-expl">${it.explanation}</div>
+        ${(it.vocab && it.vocab.length) ? `<div class="ri-vocab">Vocabulary to review: ${it.vocab.join(", ")}</div>` : ""}
+      </div>
+    `).join("");
+  }
+
+  const vocabFlags = res.vocab.length
+    ? `<div class="vocab-flags">${res.vocab.map(v => `<span>${v}</span>`).join("")}</div>`
+    : `<p style="color:var(--ink-soft);font-size:14px;">No vocabulary gaps flagged.</p>`;
+
+  // Study targets: Proficient-level ALD skills for weak standards.
+  let targetsHtml = "";
+  orderStds.forEach(s => {
+    const d = res.domain[s];
+    if (!d || d.correct >= d.total) return; // only standards with a miss
+    const tg = ALD_TARGETS[s] || [];
+    if (!tg.length) return;
+    targetsHtml += `<div class="target-block">
+      <h4>${domainNames[s]}</h4>
+      <ul>${tg.map(t => `<li>${t}</li>`).join("")}</ul>
+    </div>`;
+  });
+  if (!targetsHtml) {
+    targetsHtml = `<p class="lead">You met the bar on every standard. Keep these skills sharp before the retake.</p>`;
+  }
+
+  const levelDesc = ACHIEVEMENT_DESCRIPTORS[res.level] || "";
+
+  $("#results-body").innerHTML = `
+    <h1>Practice Results</h1>
+    <p class="who">${state.name}</p>
+
+    <div id="submit-status-slot"></div>
+
+    <div class="score-row">
+      <div class="stat"><div class="k">Overall score</div><div class="v">${res.pct}%</div></div>
+      <div class="stat"><div class="k">Correct</div><div class="v">${res.correct}/${res.total}</div></div>
+      <div class="stat"><div class="k">Achievement level</div>
+        <div style="margin-top:6px;"><span class="level-tag level-${levelKey}">${res.level}</span></div>
+      </div>
+    </div>
+
+    <p class="level-desc">${levelDesc}</p>
+    <p class="cut-note">This level uses practice percent estimates, not official Georgia Milestones scale-score cuts.</p>
+
+    <h2 style="font-size:16px;color:var(--navy);margin:18px 0 2px;">Performance by standard</h2>
+    <div class="domain-bars">${bars}</div>
+
+    <h2 style="font-size:16px;color:var(--navy);margin:18px 0 2px;">Study targets for your retake</h2>
+    <p class="lead">Proficient-level skills for the standards where you missed questions.</p>
+    <div class="targets">${targetsHtml}</div>
+
+    <h2 style="font-size:16px;color:var(--navy);margin:18px 0 2px;">Vocabulary to review</h2>
+    <p class="lead">Terms from the questions you missed.</p>
+    ${vocabFlags}
+
+    <div class="review">
+      <h2>Review your missed questions</h2>
+      <p class="lead">Worked explanations are shown only for questions you got wrong. Study these before your retake.</p>
+      ${review}
+    </div>
+
+    <div class="results-actions">
+      <button class="ghost" id="download-btn">Download my results</button>
+    </div>
+  `;
+  updateSubmitStatus(submitState, null);
+  $("#download-btn").addEventListener("click", () => downloadResults(res));
+}
+
+function updateSubmitStatus(stateStr, payload) {
+  const slot = $("#submit-status-slot");
+  if (!slot) return;
+  if (stateStr === "pending") {
+    slot.innerHTML = `<div class="submit-status pending">Saving your results…</div>`;
+  } else if (stateStr === "ok") {
+    slot.innerHTML = `<div class="submit-status ok">Your results were submitted to your teacher.</div>`;
+  } else {
+    slot.innerHTML = `<div class="submit-status fail">Results could not be sent over the network. Tap "Download my results" below and send the file to your teacher.</div>`;
+  }
+}
+
+function downloadResults(res) {
+  const lines = [];
+  lines.push("Algebra: Concepts & Connections — GMAS Practice Results");
+  lines.push("Student: " + state.name);
+  lines.push("Date: " + new Date().toLocaleString());
+  lines.push("Overall score: " + res.pct + "%");
+  lines.push("Correct: " + res.correct + "/" + res.total);
+  lines.push("Achievement level: " + res.level);
+  lines.push("  (" + (ACHIEVEMENT_DESCRIPTORS[res.level] || "") + ")");
+  lines.push("  Note: level uses practice percent estimates, not official GMAS scale-score cuts.");
+  lines.push("");
+  lines.push("Performance by standard:");
+  Object.keys(res.domain).forEach(s => {
+    lines.push("  " + s + ": " + res.domain[s].correct + "/" + res.domain[s].total);
+  });
+  lines.push("");
+  lines.push("Study targets for retake (Proficient level, standards with a miss):");
+  let anyTarget = false;
+  Object.keys(res.domain).forEach(s => {
+    const d = res.domain[s];
+    if (d.correct >= d.total) return;
+    const tg = (typeof ALD_TARGETS !== "undefined" && ALD_TARGETS[s]) || [];
+    if (!tg.length) return;
+    anyTarget = true;
+    lines.push("  " + s + ":");
+    tg.forEach(t => lines.push("    - " + t));
+  });
+  if (!anyTarget) lines.push("  Met the bar on every standard.");
+  lines.push("");
+  lines.push("Vocabulary to review: " + (res.vocab.join(", ") || "none"));
+  const blob = new Blob([lines.join("\n")], { type: "text/plain" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "AlgebraCC_Practice_" + state.name.replace(/\s+/g, "_") + ".txt";
+  a.click();
+}
+</script>
+</body>
+</html>
